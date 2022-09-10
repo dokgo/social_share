@@ -4,6 +4,7 @@
 //
 
 #import "SocialSharePlugin.h"
+#import <Foundation/Foundation.h>
 #include <objc/runtime.h>
 
 @implementation SocialSharePlugin
@@ -85,7 +86,7 @@
                       BOOL isFileExist = [fileManager fileExistsAtPath: backgroundVideo];
                       NSData *vidBackgroundShare;
                       if (isFileExist) {
-                          vidBackgroundShare = [[NSData alloc] initWithContentsOfFile:backgroundVideo];
+                          vidBackgroundShare = [[NSData alloc] dataWithContentsOfFile:backgroundVideo];
                       }
                           NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundVideo" : vidBackgroundShare,
                                                          @"com.instagram.sharedSticker.stickerImage" : imgShare,
