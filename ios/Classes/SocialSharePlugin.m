@@ -83,9 +83,9 @@
             //if you have a background video
                       NSFileManager *fileManager = [NSFileManager defaultManager];
                       BOOL isFileExist = [fileManager fileExistsAtPath: backgroundVideo];
-                      UIImage *vidBackgroundShare;
+                      NSData *vidBackgroundShare;
                       if (isFileExist) {
-                          vidBackgroundShare = [[UIImage alloc] initWithContentsOfFile:backgroundVideo];
+                          vidBackgroundShare = [[NSData alloc] initWithContentsOfFile:backgroundVideo];
                       }
                           NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundVideo" : vidBackgroundShare,
                                                          @"com.instagram.sharedSticker.stickerImage" : imgShare,
