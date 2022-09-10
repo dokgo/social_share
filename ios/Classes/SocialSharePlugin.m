@@ -55,7 +55,7 @@
                result(@"this only supports iOS 10+");
            }
            
-       } else if ([backgroundImage length != 0]) {
+       } else if ([backgroundImage length] != 0) {
            //if you have a background image
            NSFileManager *fileManager = [NSFileManager defaultManager];
            BOOL isFileExist = [fileManager fileExistsAtPath: backgroundImage];
