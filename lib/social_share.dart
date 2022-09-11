@@ -9,13 +9,13 @@ class SocialShare {
   static const MethodChannel _channel = const MethodChannel('social_share');
 
   static Future<String?> shareInstagramStory(
-      String imagePath, {
-        String? backgroundTopColor,
-        String? backgroundBottomColor,
-        String? attributionURL,
-        String? backgroundImagePath,
-        String? backgroundVideoPath,
-      }) async {
+    String imagePath, {
+    String? backgroundTopColor,
+    String? backgroundBottomColor,
+    String? attributionURL,
+    String? backgroundImagePath,
+    String? backgroundVideoPath,
+  }) async {
     Map<String, dynamic> args;
     if (Platform.isIOS) {
       if (backgroundImagePath == null) {
@@ -68,6 +68,7 @@ class SocialShare {
       args = <String, dynamic>{
         "stickerImage": stickerAssetName,
         "backgroundImage": backgroundAssetName,
+        "backgroundVideo": backgroundAssetName,
         "backgroundTopColor": backgroundTopColor,
         "backgroundBottomColor": backgroundBottomColor,
         "attributionURL": attributionURL,
@@ -113,7 +114,7 @@ class SocialShare {
       };
     }
     final String? response =
-    await _channel.invokeMethod('shareFacebookStory', args);
+        await _channel.invokeMethod('shareFacebookStory', args);
     return response;
   }
 
