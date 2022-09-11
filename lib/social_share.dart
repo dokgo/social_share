@@ -46,29 +46,31 @@ class SocialShare {
       file = await File(stickerAssetPath).create();
       file.writeAsBytesSync(stickerAssetAsList);
 
-      String? backgroundAssetName;
+      String? backgroundImageAssetName;
+      String? backgroundVideoAssetName;
+
       if (backgroundVideoPath != null) {
         File backgroundVideo = File(backgroundVideoPath);
         Uint8List backgroundVideoData = backgroundVideo.readAsBytesSync();
-        backgroundAssetName = 'backgroundAsset.mp4';
+        backgroundVideoAssetName = 'backgroundAsset.mp4';
         final Uint8List backgroundAssetAsList = backgroundVideoData;
-        final backgroundAssetPath = '${tempDir.path}/$backgroundAssetName';
+        final backgroundAssetPath = '${tempDir.path}/$backgroundVideoAssetName';
         File backFile = await File(backgroundAssetPath).create();
         backFile.writeAsBytesSync(backgroundAssetAsList);
       } else if (backgroundImagePath != null) {
         File backgroundImage = File(backgroundImagePath);
         Uint8List backgroundImageData = backgroundImage.readAsBytesSync();
-        backgroundAssetName = 'backgroundAsset.jpg';
+        backgroundImageAssetName = 'backgroundAsset.jpg';
         final Uint8List backgroundAssetAsList = backgroundImageData;
-        final backgroundAssetPath = '${tempDir.path}/$backgroundAssetName';
+        final backgroundAssetPath = '${tempDir.path}/$backgroundImageAssetName';
         File backFile = await File(backgroundAssetPath).create();
         backFile.writeAsBytesSync(backgroundAssetAsList);
       }
 
       args = <String, dynamic>{
         "stickerImage": stickerAssetName,
-        "backgroundImage": backgroundAssetName,
-        "backgroundVideo": backgroundAssetName,
+        "backgroundImage": backgroundImageAssetName,
+        "backgroundVideo": backgroundVideoAssetName,
         "backgroundTopColor": backgroundTopColor,
         "backgroundBottomColor": backgroundBottomColor,
         "attributionURL": attributionURL,
