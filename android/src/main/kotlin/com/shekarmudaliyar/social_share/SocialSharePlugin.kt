@@ -1,277 +1,234 @@
-package com.shekarmudaliyar.social_share
+import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
-import android.app.Activity
-import android.content.*
-import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
-import android.net.Uri
-import android.os.Build
-import android.util.Log
-import androidx.annotation.NonNull
-import io.flutter.embedding.engine.plugins.FlutterPlugin
-import io.flutter.embedding.engine.plugins.activity.ActivityAware
-import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import androidx.core.content.FileProvider
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
-import java.io.File
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 
-class SocialSharePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
-    private lateinit var channel: MethodChannel
-    private var activity: Activity? = null
-    private var activeContext: Context? = null
-    private var context: Context? = null
+class SocialShare {
+    static const MethodChannel _channel = const MethodChannel('social_share');
 
-    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        context = flutterPluginBinding.applicationContext
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "social_share")
-        channel.setMethodCallHandler(this)
-    }
-
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        activeContext = if (activity != null) activity!!.applicationContext else context!!
-
-        if (call.method == "shareInstagramStory") {
-            //share on instagram story
-            val stickerImage: String? = call.argument("stickerImage")
-            val backgroundImage: String? = call.argument("backgroundImage")
-            val backgroundVideo: String? = call.argument("backgroundVideo")
-
-            val backgroundTopColor: String? = call.argument("backgroundTopColor")
-            val backgroundBottomColor: String? = call.argument("backgroundBottomColor")
-            val attributionURL: String? = call.argument("attributionURL")
-            val file = File(activeContext!!.cacheDir, stickerImage)
-            val stickerImageFile = FileProvider.getUriForFile(
-                activeContext!!,
-                activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share",
-                file
-            )
-
-            val intent = Intent("com.instagram.share.ADD_TO_STORY")
-            intent.type = "image/*"
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.putExtra("interactive_asset_uri", stickerImageFile)
-
-            if (backgroundVideo != null) {
-                //check if background video is also provided
-                val backfile = File(activeContext!!.cacheDir, backgroundVideo)
-                val backgroundVideoFile = FileProvider.getUriForFile(
-                    activeContext!!,
-                    activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share",
-                    backfile
-                )
-                intent.setDataAndType(backgroundVideoFile, "video/*")
-            } else if (backgroundImage != null) {
-                //check if background image is also provided
-                val backfile = File(activeContext!!.cacheDir, backgroundImage)
-                val backgroundImageFile = FileProvider.getUriForFile(
-                    activeContext!!,
-                    activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share",
-                    backfile
-                )
-                intent.setDataAndType(backgroundImageFile, "image/*")
-            }
-            intent.putExtra("content_url", attributionURL)
-            intent.putExtra("top_background_color", backgroundTopColor)
-            intent.putExtra("bottom_background_color", backgroundBottomColor)
-            Log.d("", activity!!.toString())
-            // Instantiate activity and verify it will resolve implicit intent
-            activity!!.grantUriPermission(
-                "com.instagram.android",
-                stickerImageFile,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-            if (activity!!.packageManager.resolveActivity(intent, 0) != null) {
-                activeContext!!.startActivity(intent)
-                result.success("success")
+    static Future<String?> shareInstagramStory(
+    String imagePath,
+    {
+        String? backgroundTopColor,
+        String? backgroundBottomColor,
+        String? attributionURL,
+        String? backgroundImagePath,
+        String? backgroundVideoPath,
+    }) async
+    {
+        Map<String, dynamic> args;
+        if (Platform.isIOS) {
+            if (backgroundImagePath == null) {
+                args = < String, dynamic>{
+                    "stickerImage": imagePath,
+                    "backgroundTopColor": backgroundTopColor,
+                    "backgroundBottomColor": backgroundBottomColor,
+                    "attributionURL": attributionURL
+                };
             } else {
-                result.success("error")
+                args = < String, dynamic>{
+                    "stickerImage": imagePath,
+                    "backgroundImage": backgroundImagePath,
+                    "backgroundTopColor": backgroundTopColor,
+                    "backgroundBottomColor": backgroundBottomColor,
+                    "attributionURL": attributionURL
+                };
             }
-        } else if (call.method == "shareFacebookStory") {
-            //share on facebook story
-            val stickerImage: String? = call.argument("stickerImage")
-            val backgroundTopColor: String? = call.argument("backgroundTopColor")
-            val backgroundBottomColor: String? = call.argument("backgroundBottomColor")
-            val attributionURL: String? = call.argument("attributionURL")
-            val appId: String? = call.argument("appId")
-
-            val file = File(activeContext!!.cacheDir, stickerImage)
-            val stickerImageFile = FileProvider.getUriForFile(
-                activeContext!!,
-                activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share",
-                file
-            )
-            val intent = Intent("com.facebook.stories.ADD_TO_STORY")
-            intent.type = "image/*"
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.putExtra("com.facebook.platform.extra.APPLICATION_ID", appId)
-            intent.putExtra("interactive_asset_uri", stickerImageFile)
-            intent.putExtra("content_url", attributionURL)
-            intent.putExtra("top_background_color", backgroundTopColor)
-            intent.putExtra("bottom_background_color", backgroundBottomColor)
-            Log.d("", activity!!.toString())
-            // Instantiate activity and verify it will resolve implicit intent
-            activity!!.grantUriPermission(
-                "com.facebook.katana",
-                stickerImageFile,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-            if (activity!!.packageManager.resolveActivity(intent, 0) != null) {
-                activeContext!!.startActivity(intent)
-                result.success("success")
-            } else {
-                result.success("error")
-            }
-        } else if (call.method == "shareOptions") {
-            //native share options
-            val content: String? = call.argument("content")
-            val image: String? = call.argument("image")
-            val intent = Intent()
-            intent.action = Intent.ACTION_SEND
-
-            if (image != null) {
-                //check if  image is also provided
-                val imagefile = File(activeContext!!.cacheDir, image)
-                val imageFileUri = FileProvider.getUriForFile(
-                    activeContext!!,
-                    activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share",
-                    imagefile
-                )
-                intent.type = "image/*"
-                intent.putExtra(Intent.EXTRA_STREAM, imageFileUri)
-            } else {
-                intent.type = "text/plain";
-            }
-
-            intent.putExtra(Intent.EXTRA_TEXT, content)
-
-            //create chooser intent to launch intent
-            //source: "share" package by flutter (https://github.com/flutter/plugins/blob/master/packages/share/)
-            val chooserIntent: Intent =
-                Intent.createChooser(intent, null /* dialog title optional */)
-            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-            activeContext!!.startActivity(chooserIntent)
-            result.success(true)
-
-        } else if (call.method == "copyToClipboard") {
-            //copies content onto the clipboard
-            val content: String? = call.argument("content")
-            val clipboard =
-                context!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("", content)
-            clipboard.setPrimaryClip(clip)
-            result.success(true)
-        } else if (call.method == "shareWhatsapp") {
-            //shares content on WhatsApp
-            val content: String? = call.argument("content")
-            val whatsappIntent = Intent(Intent.ACTION_SEND)
-            whatsappIntent.type = "text/plain"
-            whatsappIntent.setPackage("com.whatsapp")
-            whatsappIntent.putExtra(Intent.EXTRA_TEXT, content)
-            try {
-                activity!!.startActivity(whatsappIntent)
-                result.success("true")
-            } catch (ex: ActivityNotFoundException) {
-                result.success("false")
-            }
-        } else if (call.method == "shareSms") {
-            //shares content on sms
-            val content: String? = call.argument("message")
-            val intent = Intent(Intent.ACTION_SENDTO)
-            intent.addCategory(Intent.CATEGORY_DEFAULT)
-            intent.type = "vnd.android-dir/mms-sms"
-            intent.data = Uri.parse("sms:")
-            intent.putExtra("sms_body", content)
-            try {
-                activity!!.startActivity(intent)
-                result.success("true")
-            } catch (ex: ActivityNotFoundException) {
-                result.success("false")
-            }
-        } else if (call.method == "shareTwitter") {
-            //shares content on twitter
-            val text: String? = call.argument("captionText")
-            val url: String? = call.argument("url")
-            val trailingText: String? = call.argument("trailingText")
-            val urlScheme = "http://www.twitter.com/intent/tweet?text=$text$url$trailingText"
-            Log.d("log", urlScheme)
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.data = Uri.parse(urlScheme)
-            try {
-                activity!!.startActivity(intent)
-                result.success("true")
-            } catch (ex: ActivityNotFoundException) {
-                result.success("false")
-            }
-        } else if (call.method == "shareTelegram") {
-            //shares content on Telegram
-            val content: String? = call.argument("content")
-            val telegramIntent = Intent(Intent.ACTION_SEND)
-            telegramIntent.type = "text/plain"
-            telegramIntent.setPackage("org.telegram.messenger")
-            telegramIntent.putExtra(Intent.EXTRA_TEXT, content)
-            try {
-                activity!!.startActivity(telegramIntent)
-                result.success("true")
-            } catch (ex: ActivityNotFoundException) {
-                result.success("false")
-            }
-        } else if (call.method == "checkInstalledApps") {
-            //check if the apps exists
-            //creating a mutable map of apps
-            var apps: MutableMap<String, Boolean> = mutableMapOf()
-            //assigning package manager
-            val pm: PackageManager = context!!.packageManager
-            //get a list of installed apps.
-            val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            //intent to check sms app exists
-            val intent = Intent(Intent.ACTION_SENDTO).addCategory(Intent.CATEGORY_DEFAULT)
-            intent.type = "vnd.android-dir/mms-sms"
-            intent.data = Uri.parse("sms:")
-            val resolvedActivities: List<ResolveInfo> = pm.queryIntentActivities(intent, 0)
-            //if sms app exists
-            apps["sms"] = resolvedActivities.isNotEmpty()
-            //if other app exists
-            apps["instagram"] =
-                packages.any { it.packageName.toString().contentEquals("com.instagram.android") }
-            apps["facebook"] =
-                packages.any { it.packageName.toString().contentEquals("com.facebook.katana") }
-            apps["twitter"] =
-                packages.any { it.packageName.toString().contentEquals("com.twitter.android") }
-            apps["whatsapp"] =
-                packages.any { it.packageName.toString().contentEquals("com.whatsapp") }
-            apps["telegram"] =
-                packages.any { it.packageName.toString().contentEquals("org.telegram.messenger") }
-
-            result.success(apps)
         } else {
-            result.notImplemented()
+            final tempDir = await getTemporaryDirectory();
+
+            File file = File (imagePath);
+            Uint8List bytes = file . readAsBytesSync ();
+            var stickerData = bytes.buffer.asUint8List();
+            String stickerAssetName = 'stickerAsset.png';
+            final Uint8List stickerAssetAsList = stickerData;
+            final stickerAssetPath = '${tempDir.path}/$stickerAssetName';
+            file = await File (stickerAssetPath).create();
+            file.writeAsBytesSync(stickerAssetAsList);
+
+            String? backgroundAssetName;
+            if (backgroundVideoPath != null) {
+                File backgroundVideo = File (backgroundVideoPath);
+                Uint8List backgroundVideoData = backgroundVideo . readAsBytesSync ();
+                backgroundAssetName = 'backgroundAsset.mp4';
+                final Uint8List backgroundAssetAsList = backgroundVideoData;
+                final backgroundAssetPath = '${tempDir.path}/$backgroundAssetName';
+                File backFile = await File(backgroundAssetPath).create();
+                backFile.writeAsBytesSync(backgroundAssetAsList);
+            } else if (backgroundImagePath != null) {
+                File backgroundImage = File (backgroundImagePath);
+                Uint8List backgroundImageData = backgroundImage . readAsBytesSync ();
+                backgroundAssetName = 'backgroundAsset.jpg';
+                final Uint8List backgroundAssetAsList = backgroundImageData;
+                final backgroundAssetPath = '${tempDir.path}/$backgroundAssetName';
+                File backFile = await File(backgroundAssetPath).create();
+                backFile.writeAsBytesSync(backgroundAssetAsList);
+            }
+
+            args = < String, dynamic>{
+                "stickerImage": stickerAssetName,
+                "backgroundImage": backgroundAssetName,
+                "backgroundVideo": backgroundAssetName,
+                "backgroundTopColor": backgroundTopColor,
+                "backgroundBottomColor": backgroundBottomColor,
+                "attributionURL": attributionURL,
+            };
         }
+        final String ? response = await _channel.invokeMethod(
+            'shareInstagramStory',
+            args,
+        );
+        return response;
     }
 
-    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        channel.setMethodCallHandler(null)
+    static Future<String?> shareFacebookStory(
+    String imagePath,
+    String backgroundTopColor,
+    String backgroundBottomColor,
+    String attributionURL,
+    { String? appId }) async
+    {
+        Map<String, dynamic> args;
+        if (Platform.isIOS) {
+            args = < String, dynamic>{
+                "stickerImage": imagePath,
+                "backgroundTopColor": backgroundTopColor,
+                "backgroundBottomColor": backgroundBottomColor,
+                "attributionURL": attributionURL,
+            };
+        } else {
+            File file = File (imagePath);
+            Uint8List bytes = file . readAsBytesSync ();
+            var stickerdata = bytes.buffer.asUint8List();
+            final tempDir = await getTemporaryDirectory();
+            String stickerAssetName = 'stickerAsset.png';
+            final Uint8List stickerAssetAsList = stickerdata;
+            final stickerAssetPath = '${tempDir.path}/$stickerAssetName';
+            file = await File (stickerAssetPath).create();
+            file.writeAsBytesSync(stickerAssetAsList);
+            args = < String, dynamic>{
+                "stickerImage": stickerAssetName,
+                "backgroundTopColor": backgroundTopColor,
+                "backgroundBottomColor": backgroundBottomColor,
+                "attributionURL": attributionURL,
+                "appId": appId
+            };
+        }
+        final String ? response =
+        await _channel . invokeMethod ('shareFacebookStory', args);
+        return response;
     }
 
-    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        activity = binding.getActivity()
+    static Future<String?> shareTwitter(String captionText,
+    { List<String>? hashtags, String? url, String? trailingText }) async
+    {
+        Map<String, dynamic> args;
+        String modifiedUrl;
+        if (Platform.isAndroid) {
+            modifiedUrl = Uri.parse(url ?? '').toString().replaceAll('#', "%23");
+        } else {
+            modifiedUrl = Uri.parse(url ?? '').toString();
+        }
+        if (hashtags != null && hashtags.isNotEmpty) {
+            String tags = "";
+            hashtags.forEach((f) {
+                tags += ("%23" + f.toString() + " ").toString();
+            });
+            args = < String, dynamic>{
+                "captionText": captionText+"\n"+tags.toString(),
+                "url": modifiedUrl,
+                "trailingText": trailingText ?? ''
+            };
+        } else {
+            args = < String, dynamic>{
+                "captionText": captionText+" ",
+                "url": modifiedUrl,
+                "trailingText": trailingText ?? ''
+            };
+        }
+        final String ? version = await _channel.invokeMethod('shareTwitter', args);
+        return version;
     }
 
-    override fun onDetachedFromActivityForConfigChanges() {
-        activity = null
+    static Future<String?> shareSms(String message,
+    { String? url, String? trailingText }) async
+    {
+        Map<String, dynamic>? args;
+        if (Platform.isIOS) {
+            if (url == null) {
+                args = < String, dynamic>{
+                    "message": message,
+                };
+            } else {
+                args = < String, dynamic>{
+                    "message": message+" ",
+                    "urlLink": Uri.parse(url).toString(),
+                    "trailingText": trailingText
+                };
+            }
+        } else if (Platform.isAndroid) {
+            args = < String, dynamic>{
+                "message": message+(url ?? '')+(trailingText ?? ''),
+            };
+        }
+        final String ? version = await _channel.invokeMethod('shareSms', args);
+        return version;
     }
 
-    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        activity = binding.activity
+    static Future<bool?> copyToClipboard(content) async
+    {
+        final Map < String, String> args = <String, String>{
+        "content": content.toString()
+    };
+        final bool ? response = await _channel.invokeMethod('copyToClipboard', args);
+        return response;
     }
 
-    override fun onDetachedFromActivity() {
-        activity = null
+    static Future<bool?> shareOptions(String contentText,
+    { String? imagePath }) async
+    {
+        Map<String, dynamic> args;
+        if (Platform.isIOS) {
+            args = < String, dynamic>{ "image": imagePath, "content": contentText };
+        } else {
+            if (imagePath != null) {
+                File file = File (imagePath);
+                Uint8List bytes = file . readAsBytesSync ();
+                var imagedata = bytes.buffer.asUint8List();
+                final tempDir = await getTemporaryDirectory();
+                String imageName = 'stickerAsset.png';
+                final Uint8List imageAsList = imagedata;
+                final imageDataPath = '${tempDir.path}/$imageName';
+                file = await File (imageDataPath).create();
+                file.writeAsBytesSync(imageAsList);
+                args = < String, dynamic>{ "image": imageName, "content": contentText };
+            } else {
+                args = < String, dynamic>{ "image": imagePath, "content": contentText };
+            }
+        }
+        final bool ? version = await _channel.invokeMethod('shareOptions', args);
+        return version;
+    }
+
+    static Future<String?> shareWhatsapp(String content) async
+    {
+        final Map < String, dynamic> args = <String, dynamic>{ "content": content };
+        final String ? version = await _channel.invokeMethod('shareWhatsapp', args);
+        return version;
+    }
+
+    static Future<Map?> checkInstalledAppsForShare() async
+    {
+        final Map ? apps = await _channel.invokeMethod('checkInstalledApps');
+        return apps;
+    }
+
+    static Future<String?> shareTelegram(String content) async
+    {
+        final Map < String, dynamic> args = <String, dynamic>{ "content": content };
+        final String ? version = await _channel.invokeMethod('shareTelegram', args);
+        return version;
     }
 }
