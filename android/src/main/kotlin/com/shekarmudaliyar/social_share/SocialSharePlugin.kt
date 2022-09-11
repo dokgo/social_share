@@ -64,7 +64,7 @@ class SocialSharePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share",
                     backfile
                 )
-                intent.setDataAndType(backgroundImageFile, "video/*")
+                intent.setDataAndType(backgroundVideoFile, "video/*")
             } else if (backgroundImage != null) {
                 //check if background image is also provided
                 val backfile = File(activeContext!!.cacheDir, backgroundImage)
