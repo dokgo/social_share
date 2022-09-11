@@ -18,18 +18,9 @@ class SocialShare {
       }) async {
     Map<String, dynamic> args;
     if (Platform.isIOS) {
-      if(backgroundVideoPath != null) {
+      if (backgroundImagePath == null) {
         args = <String, dynamic>{
           "stickerImage": imagePath,
-          "backgroundVideo": backgroundVideoPath,
-          "backgroundTopColor": backgroundTopColor,
-          "backgroundBottomColor": backgroundBottomColor,
-          "attributionURL": attributionURL
-        };
-      } else if (backgroundImagePath != null) {
-        args = <String, dynamic>{
-          "stickerImage": imagePath,
-          "backgroundImage": backgroundImagePath,
           "backgroundTopColor": backgroundTopColor,
           "backgroundBottomColor": backgroundBottomColor,
           "attributionURL": attributionURL
@@ -37,6 +28,7 @@ class SocialShare {
       } else {
         args = <String, dynamic>{
           "stickerImage": imagePath,
+          "backgroundImage": backgroundImagePath,
           "backgroundTopColor": backgroundTopColor,
           "backgroundBottomColor": backgroundBottomColor,
           "attributionURL": attributionURL
@@ -55,7 +47,15 @@ class SocialShare {
       file.writeAsBytesSync(stickerAssetAsList);
 
       String? backgroundAssetName;
-      if (backgroundImagePath != null) {
+      if (backgroundVideoPath != null) {
+        File backgroundVideo = File(backgroundVideoPath);
+        Uint8List backgroundVideoData = backgroundVideo.readAsBytesSync();
+        backgroundAssetName = 'backgroundAsset.mp4';
+        final Uint8List backgroundAssetAsList = backgroundVideoData;
+        final backgroundAssetPath = '${tempDir.path}/$backgroundAssetName';
+        File backFile = await File(backgroundAssetPath).create();
+        backFile.writeAsBytesSync(backgroundAssetAsList);
+      } else if (backgroundImagePath != null) {
         File backgroundImage = File(backgroundImagePath);
         Uint8List backgroundImageData = backgroundImage.readAsBytesSync();
         backgroundAssetName = 'backgroundAsset.jpg';
