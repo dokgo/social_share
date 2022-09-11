@@ -14,21 +14,12 @@ class SocialShare {
         String? backgroundBottomColor,
         String? attributionURL,
         String? backgroundImagePath,
-        String? backgroundVideoPath,
       }) async {
     Map<String, dynamic> args;
     if (Platform.isIOS) {
       if (backgroundImagePath == null) {
         args = <String, dynamic>{
           "stickerImage": imagePath,
-          "backgroundTopColor": backgroundTopColor,
-          "backgroundBottomColor": backgroundBottomColor,
-          "attributionURL": attributionURL
-        };
-      } else if (backgroundVideoPath != null) {
-        args = <String, dynamic>{
-          "stickerImage": imagePath,
-          "backgroundVideo": backgroundVideoPath,
           "backgroundTopColor": backgroundTopColor,
           "backgroundBottomColor": backgroundBottomColor,
           "attributionURL": attributionURL

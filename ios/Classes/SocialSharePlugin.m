@@ -4,7 +4,6 @@
 //
 
 #import "SocialSharePlugin.h"
-#import <Foundation/Foundation.h>
 #include <objc/runtime.h>
 
 @implementation SocialSharePlugin
@@ -22,7 +21,6 @@
         NSString *backgroundBottomColor = call.arguments[@"backgroundBottomColor"];
         NSString *attributionURL = call.arguments[@"attributionURL"];
         NSString *backgroundImage = call.arguments[@"backgroundImage"];
-        NSString *backgroundVideo = call.arguments[@"backgroundVideo"];
         //getting image from file
         NSFileManager *fileManager = [NSFileManager defaultManager];
         BOOL isFileExist = [fileManager fileExistsAtPath: stickerImage];
@@ -36,8 +34,8 @@
         //adding data to send to instagram story
         if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
            //if instagram is installed and the url can be opened
-           if ( [ backgroundImage  length] == 0 && [ backgroundVideo length] == 0) {
-              //If you dont have a background image and video
+           if ( [ backgroundImage  length] == 0 ) {
+              //If you dont have a background image
              // Assign background image asset and attribution link URL to pasteboard
              NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.stickerImage" : imgShare,
                                             @"com.instagram.sharedSticker.backgroundTopColor" : backgroundTopColor,
@@ -56,7 +54,7 @@
                result(@"this only supports iOS 10+");
            }
            
-       } else if ([backgroundImage length] != 0) {
+       } else {
            //if you have a background image
            NSFileManager *fileManager = [NSFileManager defaultManager];
            BOOL isFileExist = [fileManager fileExistsAtPath: backgroundImage];
@@ -80,30 +78,6 @@
                         } else {
                             result(@"this only supports iOS 10+");
                         }
-           } else if([backgroundVideo length] != 0) {
-            //if you have a background video
-                      NSFileManager *fileManager = [NSFileManager defaultManager];
-                      BOOL isFileExist = [fileManager fileExistsAtPath: backgroundVideo];
-                      NSData *vidBackgroundShare;
-                      if (isFileExist) {
-                          vidBackgroundShare = [[NSData alloc] dataWithContentsOfFile:backgroundVideo];
-                      }
-                          NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundVideo" : vidBackgroundShare,
-                                                         @"com.instagram.sharedSticker.stickerImage" : imgShare,
-                                                         @"com.instagram.sharedSticker.backgroundTopColor" : backgroundTopColor,
-                                                         @"com.instagram.sharedSticker.backgroundBottomColor" : backgroundBottomColor,
-                                                         @"com.instagram.sharedSticker.contentURL" : attributionURL
-                                     }];
-                                     if (@available(iOS 10.0, *)) {
-                                     NSDictionary *pasteboardOptions = @{UIPasteboardOptionExpirationDate : [[NSDate date] dateByAddingTimeInterval:60 * 5]};
-                                     // This call is iOS 10+, can use 'setItems' depending on what versions you support
-                                     [[UIPasteboard generalPasteboard] setItems:pasteboardItems options:pasteboardOptions];
-
-                                       [[UIApplication sharedApplication] openURL:urlScheme options:@{} completionHandler:nil];
-                                         result(@"sharing");
-                                   } else {
-                                       result(@"this only supports iOS 10+");
-                                   }
            }
        } else {
            result(@"not supported or no facebook installed");
