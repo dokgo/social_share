@@ -14,12 +14,22 @@ class SocialShare {
         String? backgroundBottomColor,
         String? attributionURL,
         String? backgroundImagePath,
+        String? backgroundVideoPath,
       }) async {
     Map<String, dynamic> args;
     if (Platform.isIOS) {
-      if (backgroundImagePath == null) {
+      if(backgroundVideoPath != null) {
         args = <String, dynamic>{
           "stickerImage": imagePath,
+          "backgroundVideo": backgroundVideoPath,
+          "backgroundTopColor": backgroundTopColor,
+          "backgroundBottomColor": backgroundBottomColor,
+          "attributionURL": attributionURL
+        };
+      } else if (backgroundImagePath != null) {
+        args = <String, dynamic>{
+          "stickerImage": imagePath,
+          "backgroundImage": backgroundImagePath,
           "backgroundTopColor": backgroundTopColor,
           "backgroundBottomColor": backgroundBottomColor,
           "attributionURL": attributionURL
@@ -27,7 +37,6 @@ class SocialShare {
       } else {
         args = <String, dynamic>{
           "stickerImage": imagePath,
-          "backgroundImage": backgroundImagePath,
           "backgroundTopColor": backgroundTopColor,
           "backgroundBottomColor": backgroundBottomColor,
           "attributionURL": attributionURL
