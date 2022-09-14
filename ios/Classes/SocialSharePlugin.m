@@ -13,14 +13,6 @@
   [registrar addMethodCallDelegate:instance channel:channel];
 }
 
-NSString *pasteboardString;
-
-- (void)didEnterBackground {
-    UIPasteboard *thePasteboard = [UIPasteboard generalPasteboard];
-    thePasteboard.string = pasteboardString;
-    NSLog(@"Pasteboard string: %@", pasteboardString);
-}
-
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     if ([@"shareInstagramStory" isEqualToString:call.method]) {
         //Sharing story on instagram
@@ -37,10 +29,6 @@ NSString *pasteboardString;
           //if image exists
           imgShare = [[UIImage alloc] initWithContentsOfFile:stickerImage];
         }
-
-        UIPasteboard *thePasteboard = [UIPasteboard generalPasteboard];
-        pasteboardString = thePasteboard.string;
-
         //url Scheme for instagram story
         NSURL *urlScheme = [NSURL URLWithString:@"instagram-stories://share"];
         //adding data to send to instagram story
@@ -61,28 +49,7 @@ NSString *pasteboardString;
 
                [[UIApplication sharedApplication] openURL:urlScheme options:@{} completionHandler:nil];
                  //if success
-
-                 if (@available(iOS 13.0, *)) {
-                     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didEnterBackground) name:UISceneDidEnterBackgroundNotification object:nil];
-                 } else {
-                     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didEnterBackground) name:UIApplicationDidEnterBackgroundNotification object:nil];
-                 }
                  result(@"sharing");
-//                NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-//                NSOperationQueue *mainQueue = [NSOperationQueue mainQueue];
-
-//                 [[NSNotificationCenter defaultCenter] addObserver:self
-//                                                          selector:@selector(didEnterBackground)
-//                                                              name:UIApplicationDidEnterBackgroundNotification
-//                                                            object:nil
-//                 ];
-
-//                 [center addObserverForName:UIApplicationDidEnterBackgroundNotification object:nil
-//                                      queue:mainQueue
-//                                 usingBlock:^(NSNotification *note) {
-//                     thePasteboard.string = pasteboardString;
-//                     NSLog(@"Pasteboard string: %@", pasteboardString);
-//                 }];
            } else {
                result(@"this only supports iOS 10+");
            }
