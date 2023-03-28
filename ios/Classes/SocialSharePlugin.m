@@ -21,6 +21,8 @@
         NSString *backgroundBottomColor = call.arguments[@"backgroundBottomColor"];
         NSString *attributionURL = call.arguments[@"attributionURL"];
         NSString *backgroundImage = call.arguments[@"backgroundImage"];
+        NSString *appID = [dict objectForKey:@"FacebookAppID"];
+
         //getting image from file
         NSFileManager *fileManager = [NSFileManager defaultManager];
         BOOL isFileExist = [fileManager fileExistsAtPath: stickerImage];
@@ -30,7 +32,7 @@
           imgShare = [[UIImage alloc] initWithContentsOfFile:stickerImage];
         }
         //url Scheme for instagram story
-        NSURL *urlScheme = [NSURL URLWithString:@"instagram-stories://share"];
+        NSURL *urlScheme = [NSURL URLWithString:[NSString stringWithFormat:@"instagram-stories://share?source_application=%@", appID]];
         //adding data to send to instagram story
         if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
            //if instagram is installed and the url can be opened

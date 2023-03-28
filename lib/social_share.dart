@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +14,7 @@ class SocialShare {
     String? attributionURL,
     String? backgroundImagePath,
     String? backgroundVideoPath,
+    String? appId
   }) async {
     Map<String, dynamic> args;
     if (Platform.isIOS) {
@@ -74,6 +74,7 @@ class SocialShare {
         "backgroundTopColor": backgroundTopColor,
         "backgroundBottomColor": backgroundBottomColor,
         "attributionURL": attributionURL,
+        "appId": appId,
       };
     }
     final String? response = await _channel.invokeMethod(
@@ -223,9 +224,4 @@ class SocialShare {
     final String? version = await _channel.invokeMethod('shareTelegram', args);
     return version;
   }
-
-// static Future<String> shareSlack() async {
-//   final String version = await _channel.invokeMethod('shareSlack');
-//   return version;
-// }
 }
