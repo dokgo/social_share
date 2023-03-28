@@ -12,8 +12,9 @@ class SocialShare {
     required String imagePath,
     String? backgroundTopColor,
     String? backgroundBottomColor,
-    String? backgroundResourcePath,
     String? attributionURL,
+    String? backgroundImagePath,
+    String? backgroundVideoPath,
   }) async {
     return shareMetaStory(
       appId: appId,
@@ -22,7 +23,7 @@ class SocialShare {
       backgroundTopColor: backgroundTopColor,
       backgroundBottomColor: backgroundBottomColor,
       attributionURL: attributionURL,
-      backgroundResourcePath: backgroundResourcePath,
+      backgroundResourcePath: backgroundVideoPath ?? backgroundImagePath,
     );
   }
 
@@ -193,11 +194,6 @@ class SocialShare {
     final String? version = await _channel.invokeMethod('shareTelegram', args);
     return version;
   }
-
-// static Future<String> shareSlack() async {
-//   final String version = await _channel.invokeMethod('shareSlack');
-//   return version;
-// }
 
   //Utils
   static Future<bool> reSaveImage(String? imagePath, String filename) async {
